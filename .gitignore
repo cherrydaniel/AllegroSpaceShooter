@@ -3,6 +3,7 @@ vcpkg_installed
 .vscode
 CMakeUserPresets.json
 notes.md
+startup.md
 src/vc140.pdb
 src/assets/fonts/*
 src/assets/images/*
