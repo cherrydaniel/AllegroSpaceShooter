@@ -38,7 +38,6 @@
 #define ROAD_ACTIVE 0
 
 class Handler;
-class Camera;
 class Player;
 class World;
 struct Context;

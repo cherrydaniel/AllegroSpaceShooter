@@ -11,7 +11,6 @@ add_executable(AllegroSpaceShooter
     ${CMAKE_SOURCE_DIR}/src/main.cpp
     ${CMAKE_SOURCE_DIR}/src/game.cpp
     ${CMAKE_SOURCE_DIR}/src/input.cpp
-    # ${CMAKE_SOURCE_DIR}/src/camera.cpp
     ${CMAKE_SOURCE_DIR}/src/file.cpp
     ${CMAKE_SOURCE_DIR}/src/world.cpp
     ${CMAKE_SOURCE_DIR}/src/assetloader.cpp

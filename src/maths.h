@@ -164,9 +164,4 @@ inline void lerpRect(Rect<T>& rect, const Vec2<U>& vel, interpolation)
     rect.y = std::lerp(rect.y, rect.y+vel.x*STEP_TIME, interpolation);
 }
 
-// inline float lerp(float a, float b, float t)
-// {
-//     return (1.0f-t)*a+b*t;
-// }
-
 #endif
