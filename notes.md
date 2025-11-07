@@ -1,0 +1,1 @@
+Camera dimensions: 320x180
