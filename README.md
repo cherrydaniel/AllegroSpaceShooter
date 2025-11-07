@@ -19,6 +19,7 @@ This is a simple game made for learning purposes (WIP).
 
 ### TODO:
 * Improve bitmap quality
+* Texture atlas
 * Spawn enemies randomly
 * Enemy AI
 * Enemy textures
