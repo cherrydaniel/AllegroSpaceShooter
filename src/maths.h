@@ -157,11 +157,11 @@ inline bool intersection(const Rect<T>& a, const Rect<T>& b)
         b.y+b.h<a.y);
 }
 
-template <typename T, typename U>
-inline void lerpRect(Rect<T>& rect, const Vec2<U>& vel, interpolation)
-{
-    rect.x = std::lerp(rect.x, rect.x+vel.x*STEP_TIME, interpolation);
-    rect.y = std::lerp(rect.y, rect.y+vel.x*STEP_TIME, interpolation);
-}
+// template <typename T, typename U>
+// inline void lerpRect(Rect<T>& rect, const Vec2<U>& vel, interpolation)
+// {
+//     rect.x = std::lerp(rect.x, rect.x+vel.x*STEP_TIME, interpolation);
+//     rect.y = std::lerp(rect.y, rect.y+vel.x*STEP_TIME, interpolation);
+// }
 
 #endif

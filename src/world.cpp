@@ -619,8 +619,8 @@ void Renderer::draw(float interpolation, double delta)
             const auto& physComp = view.get<PhysicalComp>(entity);
             const auto velComp = registry->try_get<const VelocityComp>(entity);
             FRect rect = physComp.rect;
-            if (velComp)
-                lerpRect(rect, velComp->vel, interpolation);
+            // if (velComp)
+            //     lerpRect(rect, velComp->vel, interpolation);
             al_draw_filled_rectangle(rect.x, rect.y,
                 rect.x+rect.w, rect.y+rect.h, al_map_rgb(255, 20, 80));
         }
@@ -634,8 +634,8 @@ void Renderer::draw(float interpolation, double delta)
             const auto& physComp = view.get<const PhysicalComp>(entity);
             const auto velComp = registry->try_get<const VelocityComp>(entity);
             FRect rect = physComp.rect;
-            if (velComp)
-                lerpRect();//TODO
+            // if (velComp)
+            //     lerpRect();//TODO
             if (velComp)
             {
                 rect.x = std::lerp(rect.x, rect.x+velComp->vel.x*STEP_TIME, interpolation);
