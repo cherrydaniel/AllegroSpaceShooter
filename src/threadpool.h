@@ -4,7 +4,7 @@
 #include <functional>
 #include <queue>
 #include <allegro5/allegro.h>
-#include "common.h"
+#include "util/common.h"
 
 struct ThreadData
 {

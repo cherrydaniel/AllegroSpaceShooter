@@ -3,11 +3,11 @@
 #include <future>
 #include <mutex>
 #include <unordered_map>
+#include "util/common.h"
+#include "util/framecount.h"
+#include "util/duration.h"
 #include "game.h"
-#include "common.h"
-#include "framecount.h"
 #include "input.h"
-#include "duration.h"
 
 #if DEBUG_ON_SCREEN
 CircularQueue<StringMessage<DEBUG_ON_SCREEN_STRLEN>, DEBUG_ON_SCREEN_QLEN> debugQueue;

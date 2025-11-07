@@ -1,5 +1,5 @@
 #include <memory>
-#include "common.h"
+#include "util/common.h"
 #include "game.h"
 
 int main(int argc, char** argv)

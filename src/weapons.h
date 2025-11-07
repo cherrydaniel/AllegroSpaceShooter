@@ -4,11 +4,11 @@
 #include <algorithm>
 #include <allegro5/allegro.h>
 #include <entt/entity/registry.hpp>
-#include "common.h"
+#include "util/common.h"
+#include "util/maths.h"
 #include "input.h"
 #include "comps.h"
 #include "assetloader.h"
-#include "maths.h"
 
 enum WeaponType {NONE=0, BASIC, DOUBLE_BLASTER};
 

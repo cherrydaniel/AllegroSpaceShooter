@@ -11,14 +11,14 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
+#include "util/circularqueue.h"
+#include "util/duration.h"
+#include "util/allegro_util.h"
 #include "input.h"
 #include "world.h"
-#include "circularqueue.h"
 #include "assetloader.h"
-#include "allegro_util.h"
 #include "threadpool.h"
 #include "eventloop.h"
-#include "duration.h"
 
 #define DEBUG_FPS 1
 #define DEBUG_ALLOC 1

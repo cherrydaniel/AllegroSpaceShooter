@@ -6,12 +6,12 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
 #include <entt/entity/registry.hpp>
-#include "common.h"
+#include "util/common.h"
+#include "util/maths.h"
+#include "util/rnd.h"
+#include "util/observer.h"
+#include "util/fixedstack.h"
 #include "input.h"
-#include "maths.h"
-#include "rnd.h"
-#include "observer.h"
-#include "fixedstack.h"
 #include "comps.h"
 #include "assetloader.h"
 #include "weapons.h"

@@ -2,8 +2,8 @@
 #define _GAME_COMPS_H_
 
 #include <entt/entity/registry.hpp>
-#include "common.h"
-#include "maths.h"
+#include "util/common.h"
+#include "util/maths.h"
 
 // --- MARKER COMPS
 

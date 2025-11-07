@@ -1,6 +1,6 @@
+#include "util/duration.h"
 #include "world.h"
 #include "game.h"
-#include "duration.h"
 
 void LevelSystem::spawnEnemy()
 {

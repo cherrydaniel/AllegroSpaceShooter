@@ -1,5 +1,5 @@
 #include "input.h"
-#include "common.h"
+#include "util/common.h"
 
 bool mapAction(ALLEGRO_EVENT* ev, InputEvent* dst)
 {

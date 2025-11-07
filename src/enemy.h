@@ -3,11 +3,11 @@
 
 #include <allegro5/allegro.h>
 #include <entt/entity/registry.hpp>
-#include "common.h"
+#include "util/common.h"
+#include "util/maths.h"
 #include "input.h"
 #include "comps.h"
 #include "assetloader.h"
-#include "maths.h"
 
 #define ENEMY_PADDING 20.0f
 
