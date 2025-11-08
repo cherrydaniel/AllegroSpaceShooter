@@ -4,12 +4,11 @@
 #include <entt/entity/registry.hpp>
 #include "util/common.h"
 #include "util/maths.h"
+#include "consts.h"
 
 // --- MARKER COMPS
 
 struct ScreenBoundComp {};
-
-struct RoadBoundComp {};
 
 struct DestroyOnScreenBottomComp {};
 
@@ -82,11 +81,9 @@ struct PlayerComp
     ALLEGRO_BITMAP* bitmap;
 };
 
-enum Side {PLAYER=0, ENEMY};
-
 struct HittableComp
 {
-    Side side;
+    Faction side;
 };
 
 struct HealthComp
@@ -113,7 +110,7 @@ struct CollisionMarkerComp
 struct BulletComp
 {
     entt::entity shooter;
-    Side targetSide;
+    Faction targetSide;
     uint32_t damage;
 };
 

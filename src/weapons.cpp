@@ -14,12 +14,12 @@ void BasicWeapon::fireBullet()
     bulletComp.shooter = entity;
     bulletComp.damage = BULLET_DAMAGE;
     float speed = BULLET_SPEED;
-    if (targetSide==Side::ENEMY)
+    if (targetSide==Faction::ENEMY)
         speed*=-1;
     registry->emplace<VelocityComp>(bullet, 0, speed);
     float x = physComp.rect.x+(physComp.rect.w/2)-(BULLET_WIDTH/2);
     float y = physComp.rect.y-BULLET_HEIGHT-speed;
-    if (targetSide==Side::PLAYER)
+    if (targetSide==Faction::PLAYER)
         y+=physComp.rect.h-BULLET_HEIGHT;
     registry->emplace<PositionComp>(bullet, x, y);
     registry->emplace<PhysicalComp>(bullet, x, y, BULLET_WIDTH, BULLET_HEIGHT);
@@ -84,13 +84,13 @@ void DoubleBlaster::fireBullet()
     bulletCompB.shooter = entity;
     bulletCompB.damage = BULLET_DAMAGE;
     float speed = BULLET_SPEED;
-    if (targetSide==Side::ENEMY)
+    if (targetSide==Faction::ENEMY)
         speed*=-1;
     registry->emplace<VelocityComp>(bulletA, 0, speed);
     registry->emplace<VelocityComp>(bulletB, 0, speed);
     float x = physComp.rect.x+(physComp.rect.w/2)-(BULLET_WIDTH/2);
     float y = physComp.rect.y+(physComp.rect.h*0.13)-speed;
-    if (targetSide==Side::PLAYER)
+    if (targetSide==Faction::PLAYER)
         y = physComp.rect.h-BULLET_HEIGHT-y;
     float gap = BULLET_GAP/2;
     registry->emplace<PositionComp>(bulletA, x-gap, y);
@@ -145,7 +145,7 @@ void WeaponFactory::init(entt::registry* registry, AssetMap* assets)
     this->assets = assets;
 }
 
-Weapon* WeaponFactory::create(entt::entity entity, WeaponType type, Side targetSide)
+Weapon* WeaponFactory::create(entt::entity entity, WeaponType type, Faction targetSide)
 {
     switch (type)
     {

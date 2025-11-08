@@ -9,17 +9,29 @@
 #include "input.h"
 #include "comps.h"
 #include "assetloader.h"
+#include "consts.h"
 
 enum BulletType {SINGLE=0, DUAL, BEAM, SPREAD};
 
+// TODO: define consts per bullet type
+
+// static constexpr uint32_t STEPS_PER_BULLET = 10;
+// static constexpr float BULLET_WIDTH = 4.0f;
+// static constexpr float BULLET_HEIGHT = 10.0f;
+// static constexpr float BULLET_SPEED = 50.0f;
+// static constexpr uint32_t BULLET_DAMAGE = 100;
+
 struct WeaponSpecComp
 {
-
+    BulletType bulletType;
+    uint32_t bulletDamage;
+    uint32_t stepsPerBullet;
+    Faction faction;
 };
 
 struct PlayerControlledWeaponComp
 {
-    
+    uint8_t playerId;
 };
 
 struct EnemyControlledWeaponComp
@@ -29,7 +41,7 @@ struct EnemyControlledWeaponComp
 
 struct WeaponShooterComp
 {
-    uint32_t shooterId;
+    entt::entity shooterId;
 };
 
 enum WeaponType {NONE=0, BASIC, DOUBLE_BLASTER};
@@ -39,13 +51,13 @@ class Weapon
 protected:
     entt::registry* registry;
     entt::entity entity;
-    Side targetSide;
+    Faction targetSide;
     AssetMap* assets;
 public:
     Weapon(
         entt::registry* registry,
         entt::entity entity,
-        Side targetSide,
+        Faction targetSide,
         AssetMap* assets
     ) : registry{registry},
         entity{entity},
@@ -79,7 +91,7 @@ public:
     BasicWeapon(
         entt::registry* registry,
         entt::entity entity,
-        Side targetSide,
+        Faction targetSide,
         AssetMap* assets
     ) : Weapon(registry, entity, targetSide, assets),
         firing{false},
@@ -113,7 +125,7 @@ public:
     DoubleBlaster(
         entt::registry* registry,
         entt::entity entity,
-        Side targetSide,
+        Faction targetSide,
         AssetMap* assets
     ) : Weapon(registry, entity, targetSide, assets),
         firing{false},
@@ -135,7 +147,7 @@ private:
     AssetMap* assets;
 public:
     void init(entt::registry* registry, AssetMap* assets);
-    Weapon* create(entt::entity entity, WeaponType type, Side targetSide);
+    Weapon* create(entt::entity entity, WeaponType type, Faction targetSide);
 };
 
 struct WeaponComp

@@ -109,7 +109,7 @@ public:
         AssetMap* assets);
     void destroy();
     void update();
-    void equip(entt::entity entity, WeaponType weaponType, Side targetSide);
+    void equip(entt::entity entity, WeaponType weaponType, Faction targetSide);
     void unequip(entt::entity entity);
 };
 

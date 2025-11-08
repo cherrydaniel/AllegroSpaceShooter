@@ -53,7 +53,6 @@ void PlayerSystem::init(entt::registry* registry)
     registry->emplace<PhysicalComp>(player,
         0.0f, 0.0f, PLAYER_WIDTH, PLAYER_HEIGHT);
     registry->emplace<ScreenBoundComp>(player);
-    registry->emplace<RoadBoundComp>(player);
     auto& playerComp = registry->emplace<PlayerComp>(player);
     playerComp.bitmap = al_create_bitmap(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     registry->emplace<ScoreComp>(player);
@@ -368,7 +367,7 @@ void WeaponSystem::update()
     }
 }
 
-void WeaponSystem::equip(entt::entity entity, WeaponType weaponType, Side targetSide)
+void WeaponSystem::equip(entt::entity entity, WeaponType weaponType, Faction targetSide)
 {
     auto& weaponComp = registry->get<WeaponComp>(entity);
     if (weaponComp.weapon)
@@ -522,7 +521,7 @@ bool World::init(int w, int h, AssetMap* assets, ALLEGRO_BITMAP* mainBitmap)
     renderer.init(&registry, assets, mainBitmap);
     auto playerView = registry.view<const PlayerComp>();
     for (auto player : playerView)
-        weaponSystem.equip(player, WeaponType::BASIC, Side::ENEMY);
+        weaponSystem.equip(player, WeaponType::BASIC, Faction::ENEMY);
     return true;
 }
 

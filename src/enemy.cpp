@@ -6,7 +6,7 @@ void SquidEnemy::init(float x, float y)
     registry->emplace<DestroyOnScreenBottomComp>(entity);
     registry->emplace<VelocityComp>(entity, 0, SPEED);
     auto& hittableComp = registry->emplace<HittableComp>(entity);
-    hittableComp.side = Side::ENEMY;
+    hittableComp.side = Faction::ENEMY;
     registry->emplace<PositionComp>(entity, x, y);
     registry->emplace<PhysicalComp>(entity, x, y, SIZE, SIZE);
     auto& healthComp = registry->emplace<HealthComp>(entity);
