@@ -134,75 +134,6 @@ void PlayerSystem::update()
     }
 }
 
-void RoadSystem::positionRoadSection(entt::entity entity)
-{
-    auto [posComp, roadComp] = registry->get<PositionComp, RoadComp>(entity);
-    if (lastSection==entt::null)
-    {
-        posComp.pos.x = dim.w/2-ROAD_WIDTH/2;
-        posComp.pos.y = dim.h-ROAD_SECTION_HEIGHT;
-        roadComp.direction = FORWARD;
-        lastSection = entity;
-        return;
-    }
-    auto [lastPosComp, lastRoadComp] = registry->get<PositionComp, RoadComp>(lastSection);
-    roadComp.direction = lastRoadComp.direction;
-    if (directionChangeCountdown--<=0)
-    {
-        roadComp.direction = static_cast<RoadDirection>(rnd.range(0, 2));
-        directionChangeCountdown = rnd.range(ROAD_DIRECTION_MIN, ROAD_DIRECTION_MAX);
-    }
-    posComp.pos.x = lastPosComp.pos.x;
-    if (roadComp.direction==LEFT)
-    {
-        posComp.pos.x-=ROAD_SECTION_HEIGHT;
-        if (posComp.pos.x<ROAD_PADDING)
-        {
-            posComp.pos.x+=ROAD_SECTION_HEIGHT;
-            roadComp.direction = FORWARD;
-        }
-    }
-    else if (roadComp.direction==RIGHT)
-    {
-        posComp.pos.x+=ROAD_SECTION_HEIGHT;
-        if (posComp.pos.x>dim.w-ROAD_WIDTH-(ROAD_PADDING*2))
-        {
-            posComp.pos.x-=ROAD_SECTION_HEIGHT;
-            roadComp.direction = FORWARD;
-        }
-    }
-    posComp.pos.y = lastPosComp.pos.y-ROAD_SECTION_HEIGHT;
-    lastSection = entity;
-}
-
-void RoadSystem::init(entt::registry* registry, const IVec2& dim)
-{
-    this->registry = registry;
-    this->dim = dim;
-    directionChangeCountdown = 20;
-    const size_t numRoadSections = VIEWPORT_HEIGHT/ROAD_SECTION_HEIGHT+1;
-    for (size_t i = 0; i<numRoadSections; i++)
-    {
-        auto section = registry->create();
-        registry->emplace<RoadComp>(section);
-        registry->emplace<PositionComp>(section);
-        registry->emplace<VelocityComp>(section, 0, ROAD_MOVE_SPEED);
-        registry->emplace<CollisionMarkerComp>(section);
-        positionRoadSection(section);
-    }
-}
-
-void RoadSystem::update()
-{
-    auto view = registry->view<const RoadComp, const PositionComp>();
-    for (auto entity : view)
-    {
-        const auto& posComp = view.get<PositionComp>(entity);
-        if (posComp.pos.y>=dim.h)
-            positionRoadSection(entity);
-    }
-}
-
 void PhysicsSystem::markCollision(entt::entity entity)
 {
     auto colMarkComp = registry->try_get<CollisionMarkerComp>(entity);
@@ -298,61 +229,6 @@ void PhysicsSystem::resolveScreenBound()
     }
 }
 
-void PhysicsSystem::resolveRoadBound()
-{
-    auto view = registry->view<const PhysicalComp, const RoadBoundComp>();
-    for (auto entity : view)
-    {
-        auto roadView = registry->view<const RoadComp, const PositionComp>();
-        for (auto roadEntity : roadView)
-        {
-            const auto& physComp = view.get<const PhysicalComp>(entity);
-            const auto& roadComp = roadView.get<const RoadComp>(roadEntity);
-            const auto& roadPosComp = roadView.get<const PositionComp>(roadEntity);
-            if (intersection(physComp.rect,
-                {0.0f, roadPosComp.pos.y, roadPosComp.pos.x, ROAD_SECTION_HEIGHT}))
-            {
-                if (roadComp.direction==FORWARD)
-                {
-                    resolveCollisionX(entity, roadPosComp.pos.x);
-                    markCollision(entity);
-                    markCollision(roadEntity);
-                }
-                else
-                {
-                    float hitPos = roadPosComp.pos.x+(roadPosComp.pos.y-physComp.rect.y);
-                    if (physComp.rect.x<hitPos)
-                    {
-                        resolveCollisionX(entity, hitPos);
-                        markCollision(entity);
-                        markCollision(roadEntity);
-                    }
-                }
-            }
-            else if (intersection(physComp.rect,
-                {roadPosComp.pos.x+ROAD_WIDTH, roadPosComp.pos.y, dim.w-roadPosComp.pos.x+ROAD_WIDTH, ROAD_SECTION_HEIGHT}))
-            {
-                if (roadComp.direction==FORWARD)
-                {
-                    resolveCollisionX(entity, roadPosComp.pos.x+ROAD_WIDTH-physComp.rect.w);
-                    markCollision(entity);
-                    markCollision(roadEntity);
-                }
-                else
-                {
-                    float hitPos = roadPosComp.pos.x+ROAD_WIDTH-ROAD_SECTION_HEIGHT-(roadPosComp.pos.y-physComp.rect.y);
-                    if (physComp.rect.x>hitPos)
-                    {
-                        resolveCollisionX(entity, hitPos);
-                        markCollision(entity);
-                        markCollision(roadEntity);
-                    }
-                }
-            }
-        }
-    }
-}
-
 void PhysicsSystem::resolvePlayerEnemy()
 {
     // TODO
@@ -423,7 +299,6 @@ void PhysicsSystem::checkCollisions()
     resetCollisionMarkers();
     resolveDeadOnScreenBottom();
     resolveScreenBound();
-    resolveRoadBound();
     resolvePlayerEnemy();
     resolvePowerups();
     resolveBullets();
@@ -536,35 +411,6 @@ void Renderer::draw(float interpolation, double delta)
 {
     al_clear_to_color(al_map_rgb(25, 10, 40));
     al_draw_bitmap(background, 0, 0, 0);
-#if ROAD_ACTIVE
-    // draw road
-    {
-        auto view = registry->view<
-            const RoadComp, const PositionComp, const VelocityComp>();
-        for (auto entity : view)
-        {
-            const auto& roadComp = view.get<const RoadComp>(entity);
-            const auto& posComp = view.get<const PositionComp>(entity);
-            const auto& velComp = view.get<const VelocityComp>(entity);
-            float bottomOffset = 0.0f;
-            FVec2 pos = posComp.pos;
-            pos.x = std::lerp(pos.x, pos.x+velComp.vel.x*STEP_TIME, interpolation);
-            pos.y = std::lerp(pos.y, pos.y+velComp.vel.y*STEP_TIME, interpolation);
-            switch (roadComp.direction)
-            {
-                case LEFT: bottomOffset = ROAD_SECTION_HEIGHT-2; break;
-                case RIGHT: bottomOffset = -ROAD_SECTION_HEIGHT+2; break;
-            }
-            const auto colMarkComp = registry->try_get<const CollisionMarkerComp>(entity);
-            auto color = colMarkComp&&colMarkComp->mark
-                ? al_map_rgb(200, 200, 200) : al_map_rgb(255, 25, 25);
-            al_draw_line(pos.x, pos.y, pos.x+bottomOffset,
-                pos.y+ROAD_SECTION_HEIGHT-2, color, 4);
-            al_draw_line(pos.x+ROAD_WIDTH, pos.y, pos.x+ROAD_WIDTH+bottomOffset,
-                pos.y+ROAD_SECTION_HEIGHT-2, color, 4);
-        }
-    }
-#endif
     // draw enemies
     {
         auto view = registry->view<const EnemyComp, const PhysicalComp>();
@@ -671,9 +517,6 @@ bool World::init(int w, int h, AssetMap* assets, ALLEGRO_BITMAP* mainBitmap)
     dim.h = h;
     levelSystem.init(&registry, assets, dim);
     playerSystem.init(&registry);
-#if ROAD_ACTIVE
-    roadSystem.init(&registry, dim);
-#endif
     physicsSystem.init(&registry, dim, &bulletHitSubject);
     weaponSystem.init(&registry, dim, &bulletHitSubject, assets);
     renderer.init(&registry, assets, mainBitmap);
@@ -697,9 +540,6 @@ void World::tick()
     // 2. Update AI + enemy weapon fire - TODO
     // 3. Update positions
     physicsSystem.applyMovement();
-#if ROAD_ACTIVE
-    roadSystem.update();
-#endif
     // 4. Resolve collisions - screenbound, roadbound, player-enemy, bullets
     physicsSystem.checkCollisions();
     // 5. Update health + effects - TODO

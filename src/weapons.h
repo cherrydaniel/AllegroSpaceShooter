@@ -10,6 +10,28 @@
 #include "comps.h"
 #include "assetloader.h"
 
+enum BulletType {SINGLE=0, DUAL, BEAM, SPREAD};
+
+struct WeaponSpecComp
+{
+
+};
+
+struct PlayerControlledWeaponComp
+{
+    
+};
+
+struct EnemyControlledWeaponComp
+{
+
+};
+
+struct WeaponShooterComp
+{
+    uint32_t shooterId;
+};
+
 enum WeaponType {NONE=0, BASIC, DOUBLE_BLASTER};
 
 class Weapon

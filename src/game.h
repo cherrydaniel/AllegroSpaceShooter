@@ -19,23 +19,7 @@
 #include "assetloader.h"
 #include "threadpool.h"
 #include "eventloop.h"
-
-#define DEBUG_FPS 1
-#define DEBUG_ALLOC 1
-#define DEBUG_CAM 1
-#define DEBUG_ON_SCREEN 1
-#define DEBUG_ON_SCREEN_QLEN 24
-#define DEBUG_ON_SCREEN_STRLEN 1024
-#define DEBUG_WIREFRAME 1
-#define FPS 60.0f
-#define DISPLAY_WIDTH 960.0f//1920
-#define DISPLAY_HEIGHT 540.0f//1080
-#define VIEWPORT_WIDTH 640.0f
-#define VIEWPORT_HEIGHT 360.0f
-#define TILE_SIZE 8.0f
-#define STEP_TIME (1.0f/25.0f)
-#define STEP_TIME_SUBSTEPS 6.0f
-#define ROAD_ACTIVE 0
+#include "consts.h"
 
 class Handler;
 class Player;

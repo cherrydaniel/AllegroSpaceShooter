@@ -17,17 +17,7 @@
 #include "weapons.h"
 #include "userdata.h"
 #include "enemy.h"
-
-#define ROAD_DIRECTION_MIN          4
-#define ROAD_DIRECTION_MAX          8
-#define ROAD_WIDTH                  400.0f
-#define ROAD_PADDING                10.0f
-#define ROAD_SECTION_HEIGHT         40.0f
-#define ROAD_MOVE_SPEED             10.0f
-#define PLAYER_MOVE_SPEED           300.0f
-#define PLAYER_MOVE_FORCE           2.5f
-#define PLAYER_WIDTH                40.0f
-#define PLAYER_HEIGHT               40.0f
+#include "consts.h"
 
 class World;
 
@@ -73,21 +63,6 @@ private:
 public:
 };
 
-class RoadSystem
-{
-private:
-    RND rnd;
-    entt::registry* registry;
-    IVec2 dim;
-    entt::entity lastSection;
-    uint8_t directionChangeCountdown;
-    void positionRoadSection(entt::entity entity);
-public:
-    RoadSystem() : lastSection{entt::null} {}
-    void init(entt::registry* registry, const IVec2& dim);
-    void update();
-};
-
 class PhysicsSystem
 {
 private:
@@ -100,7 +75,6 @@ private:
     void resolveCollisionY(entt::entity entity, float y);
     void resolveDeadOnScreenBottom();
     void resolveScreenBound();
-    void resolveRoadBound();
     void resolvePlayerEnemy();
     void resolvePowerups();
     void resolveBullets();
@@ -161,7 +135,6 @@ private:
     IVec2 dim;
     LevelSystem levelSystem;
     PlayerSystem playerSystem;
-    RoadSystem roadSystem;
     PhysicsSystem physicsSystem;
     WeaponSystem weaponSystem;
     Renderer renderer;

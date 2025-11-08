@@ -4,6 +4,7 @@
 #include <cmath>
 #include <string>
 #include <sstream>
+#include "../consts.h"
 
 template <typename T>
 union Vec2

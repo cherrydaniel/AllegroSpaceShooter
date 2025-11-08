@@ -82,14 +82,6 @@ struct PlayerComp
     ALLEGRO_BITMAP* bitmap;
 };
 
-enum RoadDirection {FORWARD=0, LEFT, RIGHT};
-
-struct RoadComp
-{
-    RoadDirection direction;
-    RoadComp() : direction{FORWARD} {}
-};
-
 enum Side {PLAYER=0, ENEMY};
 
 struct HittableComp
