@@ -5,24 +5,33 @@
 #include <string>
 #include <sstream>
 
-unsigned char fileReadU8(std::istream& fs);
+class FileWriter
+{
+private:
+    std::ofstream fs;
+public:
+    FileWriter(const char* path);
+    ~FileWriter();
+    bool isOpen();
+    void writeU8(unsigned char v);
+    void writeU16(unsigned short v);
+    void writeU32(unsigned long v);
+    void writeString(std::string v);
+};
 
-unsigned short fileReadU16(std::istream& fs);
-
-unsigned long fileReadU32(std::istream& fs);
-
-std::string fileReadString(std::istream& fs);
-
-std::string fileReadAllAsString(std::istream& fs);
-
-std::string fileReadAllAsString(const char* path, bool& err);
-
-void fileWriteU8(std::ostream& fs, unsigned char v);
-
-void fileWriteU16(std::ostream& fs, unsigned short v);
-
-void fileWriteU32(std::ostream& fs, unsigned long v);
-
-void fileWriteString(std::ostream& fs, std::string v);
+class FileReader
+{
+private:
+    std::ifstream fs;
+public:
+    FileReader(const char* path);
+    ~FileReader();
+    bool isOpen();
+    unsigned char readU8();
+    unsigned short readU16();
+    unsigned long readU32();
+    std::string readString();
+    std::string readAllAsString();
+};
 
 #endif

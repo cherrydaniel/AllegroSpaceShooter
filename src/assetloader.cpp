@@ -179,13 +179,16 @@ void AssetLoader::loadShader(const char* key, const char* path)
 {
     doLoad([this, key, path]
     {
-        bool readerr;
-        std::string shaderString = fileReadAllAsString(path, readerr);
-        if (readerr)
+        std::string shaderString;
         {
-            PRINT_DEBUG(ANSI_COLOR_RED "File open failed '%s': %s" ANSI_COLOR_RESET,
-                key, path);
-            return ASSET_LOAD_FAIL;
+            FileReader fr{path};
+            if (!fr.isOpen())
+            {
+                PRINT_DEBUG(ANSI_COLOR_RED "File open failed '%s': %s" ANSI_COLOR_RESET,
+                    key, path);
+                return ASSET_LOAD_FAIL;
+            }
+            shaderString = fr.readAllAsString();
         }
         evloop->runOnMain([this, key, path, shaderString]
         {

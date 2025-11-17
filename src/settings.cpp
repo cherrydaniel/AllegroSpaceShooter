@@ -2,18 +2,18 @@
 
 bool readSettings(Settings* settings, const char* path)
 {
-    std::ifstream fs{path};
-    if (!fs.is_open())
+    FileReader fr{path};
+    if (!fr.isOpen())
         return false;
-    settings->soundOn = fileReadU8(fs);
+    settings->soundOn = fr.readU8();
     return true;
 }
 
 bool writeSettings(const Settings& settings, const char* path)
 {
-    std::ofstream fs{path};
-    if (!fs.is_open())
+    FileWriter fw{path};
+    if (!fw.isOpen())
         return false;
-    fileWriteU8(fs, settings.soundOn ? 1 : 0);
+    fw.writeU8(settings.soundOn ? 1 : 0);
     return true;
 }
