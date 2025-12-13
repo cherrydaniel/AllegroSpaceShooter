@@ -204,6 +204,7 @@ bool Game::init()
     ctx->display = DisplayPointer(
         al_create_display(DISPLAY_WIDTH, DISPLAY_HEIGHT));
     CHECK_MSG(ctx->display.get(), "Display creation failed");
+    al_set_window_title(ctx->display.get(), GAME_TITLE);
     al_hide_mouse_cursor(ctx->display.get());
     ctx->font = FontPointer(
         al_load_font("./assets/fonts/BoldPixels1.4.ttf", 16, 0));

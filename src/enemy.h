@@ -13,6 +13,23 @@
 
 enum EnemyType {ENEMY_TYPE_NONE=0, SQUID};
 
+struct EnemyControlComp
+{
+    
+};
+
+class EnemySystem
+{
+private:
+    entt::registry* registry;
+    AssetMap* assets;
+public:
+    EnemySystem() {}
+    ~EnemySystem() {}
+    void init(entt::registry* registry, AssetMap* assets);
+    void spawnSquidEnemy();
+};
+
 class Enemy
 {
 protected:

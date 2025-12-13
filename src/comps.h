@@ -61,6 +61,7 @@ struct PhysicalComp
 #define PLAYER_STATE_MOVING_RIGHT   BIT(1)
 #define PLAYER_STATE_MOVING_UP      BIT(2)
 #define PLAYER_STATE_MOVING_DOWN    BIT(3)
+#define PLAYER_STATE_FIRING         BIT(4)
 
 struct PlayerControlComp
 {

@@ -14,7 +14,6 @@ add_executable(AllegroSpaceShooter
     ${CMAKE_SOURCE_DIR}/src/file.cpp
     ${CMAKE_SOURCE_DIR}/src/world.cpp
     ${CMAKE_SOURCE_DIR}/src/assetloader.cpp
-    ${CMAKE_SOURCE_DIR}/src/weapons.cpp
     ${CMAKE_SOURCE_DIR}/src/userdata.cpp
     ${CMAKE_SOURCE_DIR}/src/settings.cpp
     ${CMAKE_SOURCE_DIR}/src/enemy.cpp
@@ -33,4 +32,5 @@ target_link_libraries(AllegroSpaceShooter PRIVATE
     Allegro::allegro_image
     Allegro::allegro_font
     Allegro::allegro_ttf
-    EnTT::EnTT)
+    EnTT::EnTT
+)

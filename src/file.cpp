@@ -1,7 +1,5 @@
 #include "file.h"
 
-
-
 FileWriter::FileWriter(const char* path){ fs.open(path); }
 
 FileWriter::~FileWriter(){ fs.close(); }
@@ -65,11 +63,9 @@ unsigned long FileReader::readU32()
 
 std::string FileReader::readString()
 {
-    unsigned long len = readU32();
-    char* buf = new char[len];
-    fs.read(buf, len);
-    std::string v{buf, len};
-    delete[] buf;
+    size_t len = static_cast<size_t>(readU32());
+    std::string v(len, '\0');
+    fs.read(&v[0], len);
     return v;
 }
 

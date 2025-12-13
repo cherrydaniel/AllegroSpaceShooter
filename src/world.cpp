@@ -8,11 +8,13 @@ void LevelSystem::spawnEnemy()
     auto& enemyComp = registry->emplace<EnemyComp>(enemy);
     enemyComp.enemy = enemyFactory.create(enemy, EnemyType::SQUID);
     enemyComp.enemy->init(SquidEnemy::SIZE, -SquidEnemy::SIZE);
+    enemySystem->spawnSquidEnemy();
 }
 
-void LevelSystem::init(entt::registry* registry, AssetMap* assets,
-    const IVec2& dim)
+void LevelSystem::init(EnemySystem* enemySystem,
+    entt::registry* registry, AssetMap* assets, const IVec2& dim)
 {
+    this->enemySystem = enemySystem;
     this->registry = registry;
     this->assets = assets;
     this->dim = dim;
@@ -57,7 +59,13 @@ void PlayerSystem::init(entt::registry* registry)
     playerComp.bitmap = al_create_bitmap(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     registry->emplace<ScoreComp>(player);
     registry->emplace<CollisionMarkerComp>(player);
-    registry->emplace<WeaponComp>(player);
+    // TODO: extract weapon recipes to util
+    auto& weaponComp = registry->emplace<WeaponSpecComp>(player);
+    weaponComp.bulletType = BulletType::DUAL;
+    weaponComp.bulletDamage = 100;
+    weaponComp.bulletSpeed = 50;
+    weaponComp.stepsPerBullet = 10;
+    weaponComp.steps = 0;
 }
 
 void PlayerSystem::handleInput(InputEvent* ev)
@@ -70,18 +78,41 @@ void PlayerSystem::handleInput(InputEvent* ev)
             continue;
         switch (ev->action)
         {
-            case MOVE_LEFT_START:   ctlComp.stateFlags|=PLAYER_STATE_MOVING_LEFT;   break;
-            case MOVE_LEFT_END:     ctlComp.stateFlags&=~PLAYER_STATE_MOVING_LEFT;  break;
-            case MOVE_RIGHT_START:  ctlComp.stateFlags|=PLAYER_STATE_MOVING_RIGHT;  break;
-            case MOVE_RIGHT_END:    ctlComp.stateFlags&=~PLAYER_STATE_MOVING_RIGHT; break;
-            case MOVE_UP_START:     ctlComp.stateFlags|=PLAYER_STATE_MOVING_UP;     break;
-            case MOVE_UP_END:       ctlComp.stateFlags&=~PLAYER_STATE_MOVING_UP;    break;
-            case MOVE_DOWN_START:   ctlComp.stateFlags|=PLAYER_STATE_MOVING_DOWN;   break;
-            case MOVE_DOWN_END:     ctlComp.stateFlags&=~PLAYER_STATE_MOVING_DOWN;  break;
+            case MOVE_LEFT_START:
+                ctlComp.stateFlags|=PLAYER_STATE_MOVING_LEFT;
+                break;
+            case MOVE_LEFT_END:
+                ctlComp.stateFlags&=~PLAYER_STATE_MOVING_LEFT;
+                break;
+            case MOVE_RIGHT_START:
+                ctlComp.stateFlags|=PLAYER_STATE_MOVING_RIGHT;
+                break;
+            case MOVE_RIGHT_END:
+                ctlComp.stateFlags&=~PLAYER_STATE_MOVING_RIGHT;
+                break;
+            case MOVE_UP_START:
+                ctlComp.stateFlags|=PLAYER_STATE_MOVING_UP;
+                break;
+            case MOVE_UP_END:
+                ctlComp.stateFlags&=~PLAYER_STATE_MOVING_UP;
+                break;
+            case MOVE_DOWN_START:
+                ctlComp.stateFlags|=PLAYER_STATE_MOVING_DOWN;
+                break;
+            case MOVE_DOWN_END:
+                ctlComp.stateFlags&=~PLAYER_STATE_MOVING_DOWN;
+                break;
+            case ATTACK_START: {
+                ctlComp.stateFlags|=PLAYER_STATE_FIRING;
+                auto weaponComp = registry->try_get<WeaponSpecComp>(entity);
+                if (weaponComp)
+                    weaponComp->steps = 0;
+                break;
+            }
+            case ATTACK_END:
+                ctlComp.stateFlags&=~PLAYER_STATE_FIRING;
+                break;
         }
-        auto weaponComp = registry->try_get<WeaponComp>(entity);
-        if (weaponComp)
-            weaponComp->weapon->handleInput(ev);
     }
 };
 
@@ -344,49 +375,110 @@ void WeaponSystem::init(entt::registry* registry, const IVec2& dim,
     this->dim = dim;
     this->bulletHitSubject = bulletHitSubject;
     this->assets = assets;
-    factory.init(registry, assets);
     hitObserver.init(registry);
     bulletHitSubject->addObserver(
         static_cast<Observer<struct BulletHitEvent>*>(&hitObserver));
+}
+
+void WeaponSystem::update()
+{
+    auto view = registry->view<WeaponSpecComp, const PhysicalComp>();
+    for (auto entity : view)
+    {
+        auto& weaponComp = view.get<WeaponSpecComp>(entity);
+        auto playerCtlComp = registry->try_get<PlayerControlComp>(entity);
+        auto enemyCtlComp = nullptr; // registry->try_get<EnemyControlComp>(entity);
+        bool firing = false;
+        Faction faction = Faction::PLAYER;
+        Faction targetSide = Faction::ENEMY;
+        if (playerCtlComp)
+        {
+            if (playerCtlComp->stateFlags&PLAYER_STATE_FIRING)
+                firing = true;
+        }
+        else if (enemyCtlComp)
+        {
+            faction = Faction::ENEMY;
+            targetSide = Faction::PLAYER;
+            // TODO: handle enemy firing state
+        }
+        if (!firing)
+            return;
+        if (!weaponComp.steps)
+        {
+            // FIRE BULLET [START]
+            auto bullet = registry->create();
+            auto& bulletComp = registry->emplace<BulletComp>(bullet);
+            bulletComp.targetSide = targetSide;
+            bulletComp.shooter = entity;
+            bulletComp.damage = weaponComp.bulletDamage;
+            switch (weaponComp.bulletType)
+            {
+                case BulletType::SINGLE:
+                {
+                    float speed = weaponComp.bulletSpeed;
+                    if (targetSide==Faction::ENEMY)
+                        speed*=-1;
+                    registry->emplace<VelocityComp>(bullet, 0, speed);
+                    const auto& physRect = view.get<const PhysicalComp>(entity).rect;
+                    float x = physRect.x+(physRect.w/2)-(BLASTER_BULLET_WIDTH/2);
+                    float y = physRect.y-BLASTER_BULLET_HEIGHT-speed;
+                    if (targetSide==Faction::PLAYER)
+                        y+=physRect.h-BLASTER_BULLET_HEIGHT;
+                    registry->emplace<PositionComp>(bullet, x, y);
+                    registry->emplace<PhysicalComp>(bullet, x, y,
+                        BLASTER_BULLET_WIDTH, BLASTER_BULLET_HEIGHT);
+                    break;
+                }
+                case BulletType::DUAL:
+                {
+                    auto bulletB = registry->create();
+                    auto& bulletCompB = registry->emplace<BulletComp>(bulletB);
+                    bulletCompB.targetSide = targetSide;
+                    bulletCompB.shooter = entity;
+                    bulletCompB.damage = weaponComp.bulletDamage;
+                    float speed = weaponComp.bulletSpeed;
+                    if (targetSide==Faction::ENEMY)
+                        speed*=-1;
+                    const auto& physRect = view.get<const PhysicalComp>(entity).rect;
+                    for (size_t i = 0; i<2; i++)
+                    {
+                        entt::entity bulletEntity = i==0 ? bullet : bulletB;
+                        registry->emplace<VelocityComp>(bulletEntity, 0, speed);
+                        float x = physRect.x+(physRect.w/2)-(BLASTER_BULLET_WIDTH/2)
+                            -(BLASTER_DUAL_GAP/2.0f)+(BLASTER_DUAL_GAP*i);
+                        float y = physRect.y-BLASTER_BULLET_HEIGHT-speed;
+                        if (targetSide==Faction::PLAYER)
+                            y+=physRect.h-BLASTER_BULLET_HEIGHT;
+                        registry->emplace<PositionComp>(bulletEntity, x, y);
+                        registry->emplace<PhysicalComp>(bulletEntity, x, y,
+                            BLASTER_BULLET_WIDTH, BLASTER_BULLET_HEIGHT);
+                    }
+                    break;
+                }
+                case BulletType::SPREAD:
+                {
+                    // TODO
+                    break;
+                }
+                case BulletType::BEAM:
+                {
+                    // TODO
+                    break;
+                }
+            }
+            // FIRE BULLET [END]
+        }
+        weaponComp.steps++;
+        if (weaponComp.steps>=weaponComp.stepsPerBullet)
+            weaponComp.steps = 0;
+    }
 }
 
 void WeaponSystem::destroy()
 {
     bulletHitSubject->removeObserver(
         static_cast<Observer<struct BulletHitEvent>*>(&hitObserver));
-}
-
-void WeaponSystem::update()
-{
-    auto view = registry->view<WeaponComp>();
-    for (auto entity : view)
-    {
-        auto& weaponComp = view.get<WeaponComp>(entity);
-        if (weaponComp.weapon)
-            weaponComp.weapon->update();
-    }
-}
-
-void WeaponSystem::equip(entt::entity entity, WeaponType weaponType, Faction targetSide)
-{
-    auto& weaponComp = registry->get<WeaponComp>(entity);
-    if (weaponComp.weapon)
-    {
-        weaponComp.weapon->destroy();
-        delete weaponComp.weapon;
-    }
-    weaponComp.weapon = factory.create(entity, weaponType, targetSide);
-    weaponComp.weapon->init();
-}
-
-void WeaponSystem::unequip(entt::entity entity)
-{
-    auto& weaponComp = registry->get<WeaponComp>(entity);
-    if (weaponComp.weapon)
-    {
-        weaponComp.weapon->destroy();
-        delete weaponComp.weapon;
-    }
 }
 
 void Renderer::init(entt::registry* registry, AssetMap* assets, ALLEGRO_BITMAP* mainBitmap)
@@ -422,11 +514,10 @@ void Renderer::draw(float interpolation, double delta)
     }
     // draw players
     {
-        auto view = registry->view<const PhysicalComp, PlayerComp, const WeaponComp>();
+        auto view = registry->view<const PhysicalComp, PlayerComp>();
         for (auto entity : view)
         {
             const auto& physComp = view.get<const PhysicalComp>(entity);
-            const auto& weaponComp = view.get<const WeaponComp>(entity);
             auto& playerComp = view.get<PlayerComp>(entity);
             playerComp.animationTime+=delta;
             int bw = al_get_bitmap_width(playerShip);
@@ -514,14 +605,12 @@ bool World::init(int w, int h, AssetMap* assets, ALLEGRO_BITMAP* mainBitmap)
     FN_DURATION();
     dim.w = w;
     dim.h = h;
-    levelSystem.init(&registry, assets, dim);
+    enemySystem.init(&registry, assets);
+    levelSystem.init(&enemySystem, &registry, assets, dim);
     playerSystem.init(&registry);
     physicsSystem.init(&registry, dim, &bulletHitSubject);
     weaponSystem.init(&registry, dim, &bulletHitSubject, assets);
     renderer.init(&registry, assets, mainBitmap);
-    auto playerView = registry.view<const PlayerComp>();
-    for (auto player : playerView)
-        weaponSystem.equip(player, WeaponType::BASIC, Faction::ENEMY);
     return true;
 }
 

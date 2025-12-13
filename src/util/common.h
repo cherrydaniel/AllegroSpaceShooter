@@ -25,4 +25,8 @@
 
 #define CHECK_MSG(v, msg, ...) {do {if (!v) {PRINT_DEBUG(msg, ##__VA_ARGS__); return false;}} while (0);}
 
+#define FOR_RANGE(a, b, i) for (size_t i = a; i<b; i++)
+
+#define FOR_TIMES(v, i) FOR_RANGE(0, v, i)
+
 #endif

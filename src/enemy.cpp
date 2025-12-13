@@ -1,5 +1,16 @@
 #include "enemy.h"
 
+void EnemySystem::init(entt::registry* registry, AssetMap* assets)
+{
+    this->registry = registry;
+    this->assets = assets;
+}
+
+void EnemySystem::spawnSquidEnemy()
+{
+    
+}
+
 void SquidEnemy::init(float x, float y)
 {
     texture = assets->getBitmap("enemy_squid");

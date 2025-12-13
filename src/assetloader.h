@@ -1,11 +1,9 @@
 #ifndef _GAME_ASSETLOADER_H_
 #define _GAME_ASSETLOADER_H_
 
-#include <future>
 #include <mutex>
 #include <unordered_map>
 #include <string>
-#include <vector>
 #include <atomic>
 #include <memory>
 #include <functional>
@@ -15,6 +13,7 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 #include "util/common.h"
+#include "util/async_scope.h"
 #include "userdata.h"
 #include "settings.h"
 #include "eventloop.h"
@@ -72,7 +71,7 @@ class AssetLoader
 {
 private:
     EventLoop* evloop;
-    std::vector<std::future<void>> futures;
+    AsyncScope asyncScope;
     std::atomic_uint32_t loaded;
     std::atomic_uint32_t requested;
     std::atomic_uint32_t failed;

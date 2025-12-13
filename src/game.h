@@ -21,6 +21,8 @@
 #include "eventloop.h"
 #include "consts.h"
 
+#define GAME_TITLE "Allegro Space Shooter"
+
 class Handler;
 class Player;
 class World;

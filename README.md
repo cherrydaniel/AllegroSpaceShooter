@@ -27,3 +27,4 @@ This is a simple game made for learning purposes (WIP).
 * Joystick support
 * Separate overarching game logic from specific screen handlers
 * Remove unneeded crap
+* Use protobuf for data file IO

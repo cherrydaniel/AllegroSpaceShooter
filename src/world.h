@@ -31,6 +31,7 @@ class LevelSystem
 {
 private:
     RND rnd;
+    EnemySystem* enemySystem;
     entt::registry* registry;
     AssetMap* assets;
     EnemyFactory enemyFactory;
@@ -40,7 +41,8 @@ private:
     double nextSpawn;
     void spawnEnemy();
 public:
-    void init(entt::registry* registry, AssetMap* assets, const IVec2& dim);
+    void init(EnemySystem* enemySystem, entt::registry* registry,
+        AssetMap* assets, const IVec2& dim);
     void reset();
     void update();
     double getDistance();
@@ -79,8 +81,11 @@ private:
     void resolvePowerups();
     void resolveBullets();
 public:
-    void init(entt::registry* registry, const IVec2& dim,
-        Subject<struct BulletHitEvent>* bulletHitSubject);
+    void init(
+        entt::registry* registry,
+        const IVec2& dim,
+        Subject<struct BulletHitEvent>* bulletHitSubject
+    );
     void applyMovement();
     void checkCollisions();
 };
@@ -99,18 +104,18 @@ class WeaponSystem
 private:
     entt::registry* registry;
     IVec2 dim;
-    WeaponFactory factory;
     HitObserver hitObserver;
     Subject<struct BulletHitEvent>* bulletHitSubject;
     AssetMap* assets;
 public:
-    void init(entt::registry* registry, const IVec2& dim,
+    void init(
+        entt::registry* registry,
+        const IVec2& dim,
         Subject<struct BulletHitEvent>* bulletHitSubject,
-        AssetMap* assets);
-    void destroy();
+        AssetMap* assets
+    );
     void update();
-    void equip(entt::entity entity, WeaponType weaponType, Faction targetSide);
-    void unequip(entt::entity entity);
+    void destroy();
 };
 
 class Renderer
@@ -123,7 +128,11 @@ private:
     ALLEGRO_BITMAP* playerShip;
     ALLEGRO_SHADER* redShader;
 public:
-    void init(entt::registry* registry, AssetMap* assets, ALLEGRO_BITMAP* mainBitmap);
+    void init(
+        entt::registry* registry,
+        AssetMap* assets,
+        ALLEGRO_BITMAP* mainBitmap
+    );
     void draw(float interpolation, double delta);
 };
 
@@ -133,6 +142,7 @@ private:
     RND rnd;
     entt::registry registry;
     IVec2 dim;
+    EnemySystem enemySystem;
     LevelSystem levelSystem;
     PlayerSystem playerSystem;
     PhysicsSystem physicsSystem;

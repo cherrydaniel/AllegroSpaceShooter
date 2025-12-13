@@ -129,15 +129,14 @@ size_t AssetMap::size() { return assets.size(); }
 void AssetLoader::doLoad(std::function<int(void)> fn)
 {
     requested++;
-    futures.push_back(std::async(std::launch::async,
-    [this, fn]
+    asyncScope.dispatch([this, fn]
     {
         int res = fn();
         if (res==ASSET_LOAD_FAIL)
             failed++;
         else if (res==ASSET_LOAD_SUCCESS)
             loaded++;
-    }));
+    });
 }
 
 void AssetLoader::loadBitmap(const char* key, const char* path)
