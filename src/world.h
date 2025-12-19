@@ -20,6 +20,7 @@
 #include "consts.h"
 
 class World;
+class WeaponSystem;
 
 struct BulletHitEvent
 {
@@ -52,8 +53,12 @@ class PlayerSystem
 {
 private:
     entt::registry* registry;
+    WeaponSystem* weaponSystem;
 public:
-    void init(entt::registry* registry);
+    void init(
+        entt::registry* registry,
+        WeaponSystem* weaponSystem
+    );
     void handleInput(InputEvent* ev);
     void update();
 };
@@ -116,6 +121,10 @@ public:
     );
     void update();
     void destroy();
+    void equipSingleBlaster(entt::entity entity);
+    void equipDualBlaster(entt::entity entity);
+    void equipBeam(entt::entity entity);
+    void equipSpreadGun(entt::entity entity);
 };
 
 class Renderer

@@ -44,9 +44,10 @@ double LevelSystem::getDistance()
     return distance;
 }
 
-void PlayerSystem::init(entt::registry* registry)
+void PlayerSystem::init(entt::registry* registry, WeaponSystem* weaponSystem)
 {
     this->registry = registry;
+    this->weaponSystem = weaponSystem;
     auto player = registry->create();
     registry->emplace<PlayerControlComp>(player, 1);
     registry->emplace<VelocityComp>(player);
@@ -59,13 +60,7 @@ void PlayerSystem::init(entt::registry* registry)
     playerComp.bitmap = al_create_bitmap(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     registry->emplace<ScoreComp>(player);
     registry->emplace<CollisionMarkerComp>(player);
-    // TODO: extract weapon recipes to util
-    auto& weaponComp = registry->emplace<WeaponSpecComp>(player);
-    weaponComp.bulletType = BulletType::DUAL;
-    weaponComp.bulletDamage = 100;
-    weaponComp.bulletSpeed = 50;
-    weaponComp.stepsPerBullet = 10;
-    weaponComp.steps = 0;
+    weaponSystem->equipSingleBlaster(player);
 }
 
 void PlayerSystem::handleInput(InputEvent* ev)
@@ -481,6 +476,36 @@ void WeaponSystem::destroy()
         static_cast<Observer<struct BulletHitEvent>*>(&hitObserver));
 }
 
+void WeaponSystem::equipSingleBlaster(entt::entity entity)
+{
+    auto& weaponComp = registry->emplace<WeaponSpecComp>(entity);
+    weaponComp.bulletType = BulletType::SINGLE;
+    weaponComp.bulletDamage = 100;
+    weaponComp.bulletSpeed = 50;
+    weaponComp.stepsPerBullet = 10;
+    weaponComp.steps = 0;
+}
+
+void WeaponSystem::equipDualBlaster(entt::entity entity)
+{
+    auto& weaponComp = registry->emplace<WeaponSpecComp>(entity);
+    weaponComp.bulletType = BulletType::DUAL;
+    weaponComp.bulletDamage = 80;
+    weaponComp.bulletSpeed = 60;
+    weaponComp.stepsPerBullet = 5;
+    weaponComp.steps = 0;
+}
+
+void WeaponSystem::equipBeam(entt::entity entity)
+{
+
+}
+
+void WeaponSystem::equipSpreadGun(entt::entity entity)
+{
+
+}
+
 void Renderer::init(entt::registry* registry, AssetMap* assets, ALLEGRO_BITMAP* mainBitmap)
 {
     this->registry = registry;
@@ -607,9 +632,9 @@ bool World::init(int w, int h, AssetMap* assets, ALLEGRO_BITMAP* mainBitmap)
     dim.h = h;
     enemySystem.init(&registry, assets);
     levelSystem.init(&enemySystem, &registry, assets, dim);
-    playerSystem.init(&registry);
-    physicsSystem.init(&registry, dim, &bulletHitSubject);
     weaponSystem.init(&registry, dim, &bulletHitSubject, assets);
+    playerSystem.init(&registry, &weaponSystem);
+    physicsSystem.init(&registry, dim, &bulletHitSubject);
     renderer.init(&registry, assets, mainBitmap);
     return true;
 }
