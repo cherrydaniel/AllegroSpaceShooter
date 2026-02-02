@@ -131,4 +131,10 @@ struct PhysicalBoundTextureComp
         : texture{nullptr}, size{0.0, 0.0}, offset{0.0, 0.0} {}
 };
 
+struct HitShaderComp
+{
+    double timeout;
+    HitShaderComp() : timeout(0.0f) {}
+};
+
 #endif

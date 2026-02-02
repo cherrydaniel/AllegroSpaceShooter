@@ -2,7 +2,6 @@
 #define _GAME_COMMON_H_
 
 #include <cstdio>
-#include <cstdlib>
 
 #define ANSI_COLOR_RESET    "\x1b[0m"
 #define ANSI_COLOR_BOLD     "\x1b[1m"

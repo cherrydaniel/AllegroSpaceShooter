@@ -1,3 +1,4 @@
+#include <allegro5/bitmap.h>
 #include <inttypes.h>
 #include "util/common.h"
 #include "util/framecount.h"
@@ -157,11 +158,14 @@ bool Game::init()
     CHECK_MSG(al_install_keyboard(), "Allegro install keyboard failed");
     CHECK_MSG(al_install_joystick(), "Allegro install joystick failed");
     al_set_new_display_flags(
-        ALLEGRO_PROGRAMMABLE_PIPELINE|
-        ALLEGRO_OPENGL|
-        // ALLEGRO_FULLSCREEN_WINDOW|
-        ALLEGRO_WINDOWED|
-        ALLEGRO_RESIZABLE
+        ALLEGRO_PROGRAMMABLE_PIPELINE
+        |ALLEGRO_OPENGL
+#if FULLSCREEN_MODE
+        |ALLEGRO_FULLSCREEN_WINDOW
+#else
+        |ALLEGRO_WINDOWED
+        |ALLEGRO_RESIZABLE
+#endif
     );
     ctx->display = DisplayPointer(
         al_create_display(DISPLAY_WIDTH, DISPLAY_HEIGHT));

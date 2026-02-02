@@ -1,24 +1,23 @@
 #ifndef _GAME_CONSTS_H_
 #define _GAME_CONSTS_H_
 
-#include "common.h"
-
 #define DEBUG_FPS 1
 #define DEBUG_ALLOC 1
 #define DEBUG_ON_SCREEN 1
 #define DEBUG_ON_SCREEN_QLEN 24
 #define DEBUG_ON_SCREEN_STRLEN 1024
-#define DEBUG_WIREFRAME 1
+#define DEBUG_WIREFRAME 0
 
+#define FULLSCREEN_MODE 0
 #define FPS 60.0f
 #define DISPLAY_WIDTH 960.0f//1920
 #define DISPLAY_HEIGHT 540.0f//1080
 #define VIEWPORT_WIDTH 640.0f
 #define VIEWPORT_HEIGHT 360.0f
 #define STEP_TIME (1.0f/25.0f)
-#define ROAD_MOVE_SPEED 10.0f
+#define WORLD_MOVE_SPEED 10.0f
 
-#define PLAYER_MOVE_SPEED 300.0f
+#define PLAYER_MOVE_SPEED 400.0f
 #define PLAYER_MOVE_FORCE 2.5f
 #define PLAYER_WIDTH 40.0f
 #define PLAYER_HEIGHT 40.0f

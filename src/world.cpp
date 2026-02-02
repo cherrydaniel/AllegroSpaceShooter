@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <allegro5/bitmap.h>
 #include <allegro5/bitmap_draw.h>
+#include <allegro5/color.h>
+#include <allegro5/shader.h>
 #include <cmath>
 #include <cstdio>
 #include <allegro5/allegro.h>
@@ -22,7 +24,8 @@
 
 void LevelSystem::spawnEnemy()
 {
-    enemySystem->spawnSquidEnemy(40.0f, -40.0f);
+    float x = rnd.range(40, dim.h-40);
+    enemySystem->spawnSquidEnemy(x, -64.0f);
 }
 
 void LevelSystem::init(EnemySystem* enemySystem,
@@ -44,7 +47,7 @@ void LevelSystem::reset()
 
 void LevelSystem::update()
 {
-    distance+=ROAD_MOVE_SPEED;
+    distance+=WORLD_MOVE_SPEED;
     if (distance>=nextSpawn)
     {
         spawnEnemy();
@@ -366,6 +369,9 @@ void HitObserver::onEvent(struct BulletHitEvent event, void* data)
     const auto& bulletComp = registry->get<const BulletComp>(event.bullet);
     PRINT_DEBUG("BOOM! damage: %d", bulletComp.damage);
     auto healthComp = registry->try_get<HealthComp>(event.target);
+    auto hitShaderComp = registry->try_get<HitShaderComp>(event.target);
+    if (hitShaderComp)
+        hitShaderComp->timeout = 0.1f;
     if (healthComp)
     {
         if (bulletComp.damage>=healthComp->hp)
@@ -552,6 +558,17 @@ void Renderer::init(entt::registry* registry, AssetMap* assets, ALLEGRO_BITMAP* 
 
 void Renderer::draw(float interpolation, double delta)
 {
+    {
+        auto view = registry->view<HitShaderComp>();
+        for (auto entity : view)
+        {
+            auto& hitShaderComp = view
+                .get<HitShaderComp>(entity);
+            hitShaderComp.timeout-=delta;
+            if (hitShaderComp.timeout<0.0f)
+                hitShaderComp.timeout = 0.0f;
+        }
+    }
     al_clear_to_color(al_map_rgb(25, 10, 40));
     al_draw_bitmap(background, 0, 0, 0);
     // draw enemies
@@ -567,20 +584,39 @@ void Renderer::draw(float interpolation, double delta)
                 .get<PhysicalComp>(entity);
             const auto& textureComp = view
                 .get<PhysicalBoundTextureComp>(entity);
-            al_draw_scaled_bitmap(
-                textureComp.texture,
-                0,
-                0,
-                al_get_bitmap_width(textureComp.texture),
-                al_get_bitmap_height(textureComp.texture),
-                physComp.rect.x+textureComp.offset.x,
-                physComp.rect.y+textureComp.offset.y,
-                textureComp.size.w,
-                textureComp.size.h,
-                0
-            );
-            // al_draw_scaled_bitmap(ALLEGRO_BITMAP *bitmap, float sx, float sy, float sw, float sh, float dx, float dy, float dw, float dh, int flags)
-            // enemyComp.enemy->draw(interpolation, delta, physComp.rect);
+            auto hitShaderComp = registry
+                ->try_get<HitShaderComp>(entity);
+            if (hitShaderComp->timeout>=0.01f)
+            {
+                al_draw_tinted_scaled_bitmap(
+                    textureComp.texture,
+                    al_map_rgb_f(10.0f, 0.0f, 0.0f),
+                    0,
+                    0,
+                    al_get_bitmap_width(textureComp.texture),
+                    al_get_bitmap_height(textureComp.texture),
+                    physComp.rect.x+textureComp.offset.x,
+                    physComp.rect.y+textureComp.offset.y,
+                    textureComp.size.w,
+                    textureComp.size.h,
+                    0
+                );
+            }
+            else
+            {
+                al_draw_scaled_bitmap(
+                    textureComp.texture,
+                    0,
+                    0,
+                    al_get_bitmap_width(textureComp.texture),
+                    al_get_bitmap_height(textureComp.texture),
+                    physComp.rect.x+textureComp.offset.x,
+                    physComp.rect.y+textureComp.offset.y,
+                    textureComp.size.w,
+                    textureComp.size.h,
+                    0
+                );
+            }
         }
     }
     // draw players
@@ -588,7 +624,8 @@ void Renderer::draw(float interpolation, double delta)
         auto view = registry->view<const PhysicalComp, PlayerComp>();
         for (auto entity : view)
         {
-            const auto& physComp = view.get<const PhysicalComp>(entity);
+            const auto& physComp = view
+                .get<const PhysicalComp>(entity);
             auto& playerComp = view.get<PlayerComp>(entity);
             playerComp.animationTime+=delta;
             int bw = al_get_bitmap_width(playerShip);
@@ -608,9 +645,18 @@ void Renderer::draw(float interpolation, double delta)
 
             al_set_target_bitmap(playerComp.bitmap);
             al_clear_to_color(al_map_rgba(0, 0, 0, 0));
-            al_use_shader(redShader);
-            al_draw_scaled_bitmap(playerShip, 0, 0, bw, bh, x, y, w, h, 0);
-            al_use_shader(nullptr);
+            al_draw_scaled_bitmap(
+                playerShip,
+                0,
+                0,
+                bw,
+                bh,
+                x,
+                y,
+                w,
+                h,
+                0
+            );
             al_set_target_bitmap(mainBitmap);
             al_draw_bitmap(playerComp.bitmap, 0, 0, 0);
             

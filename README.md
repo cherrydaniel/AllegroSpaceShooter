@@ -18,13 +18,19 @@ This is a simple game made for learning purposes (WIP).
 * RAII block duration tracker
 
 ### TODO:
-* Improve bitmap quality
 * Texture atlas
-* Spawn enemies randomly
+* Enemy death explosion
+* Moving background
+* Enemy-Player collision
+* Change weapon fire rate from "steps" to "cooldown"
+* Fix tick steps so bullets don't miss
+* RM uninit - OS will clear resources and window won't stall
+* Powerups
+* Improve bitmap quality
 * Enemy AI
-* Enemy textures
 * Multiplayer mode
 * Joystick support
 * Separate overarching game logic from specific screen handlers
 * Remove unneeded crap
-* Use protobuf for data file IO
+* Use protobuf for data file IO (if I really feel like it)
+* Music + SFX
