@@ -1,6 +1,7 @@
 build
 vcpkg_installed
 .vscode
+.clangd
 CMakeUserPresets.json
 notes.md
 startup.md

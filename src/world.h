@@ -1,23 +1,15 @@
 #ifndef _GAME_WORLD_H_
 #define _GAME_WORLD_H_
 
-#include <cmath>
-#include <algorithm>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
 #include <entt/entity/registry.hpp>
-#include "util/common.h"
 #include "util/maths.h"
 #include "util/rnd.h"
 #include "util/observer.h"
-#include "util/fixedstack.h"
 #include "input.h"
-#include "comps.h"
 #include "assetloader.h"
-#include "weapons.h"
-#include "userdata.h"
 #include "enemy.h"
-#include "consts.h"
 
 class World;
 class WeaponSystem;
@@ -35,7 +27,6 @@ private:
     EnemySystem* enemySystem;
     entt::registry* registry;
     AssetMap* assets;
-    EnemyFactory enemyFactory;
     IVec2 dim;
     double distance;
     double spawnGap;
@@ -55,12 +46,11 @@ private:
     entt::registry* registry;
     WeaponSystem* weaponSystem;
 public:
-    void init(
-        entt::registry* registry,
-        WeaponSystem* weaponSystem
-    );
+    void init(entt::registry* registry, WeaponSystem* weaponSystem);
     void handleInput(InputEvent* ev);
     void update();
+    void destroy();
+    void onPlayerDestroy(entt::registry& registry, const entt::entity entity);
 };
 
 class AISystem

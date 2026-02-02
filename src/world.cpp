@@ -1,14 +1,28 @@
-#include "util/duration.h"
+#include <algorithm>
+#include <allegro5/bitmap.h>
+#include <allegro5/bitmap_draw.h>
+#include <cmath>
+#include <cstdio>
+#include <allegro5/allegro.h>
+#include <allegro5/allegro_primitives.h>
+#include <entt/entity/registry.hpp>
+#include "comps.h"
 #include "world.h"
 #include "game.h"
+#include "input.h"
+#include "comps.h"
+#include "assetloader.h"
+#include "weapons.h"
+#include "enemy.h"
+#include "consts.h"
+#include "util/duration.h"
+#include "util/common.h"
+#include "util/maths.h"
+#include "util/observer.h"
 
 void LevelSystem::spawnEnemy()
 {
-    auto enemy = registry->create();
-    auto& enemyComp = registry->emplace<EnemyComp>(enemy);
-    enemyComp.enemy = enemyFactory.create(enemy, EnemyType::SQUID);
-    enemyComp.enemy->init(SquidEnemy::SIZE, -SquidEnemy::SIZE);
-    enemySystem->spawnSquidEnemy();
+    enemySystem->spawnSquidEnemy(40.0f, -40.0f);
 }
 
 void LevelSystem::init(EnemySystem* enemySystem,
@@ -18,7 +32,6 @@ void LevelSystem::init(EnemySystem* enemySystem,
     this->registry = registry;
     this->assets = assets;
     this->dim = dim;
-    enemyFactory.init(registry, assets);
     reset();
 }
 
@@ -48,6 +61,8 @@ void PlayerSystem::init(entt::registry* registry, WeaponSystem* weaponSystem)
 {
     this->registry = registry;
     this->weaponSystem = weaponSystem;
+    registry->on_destroy<PlayerComp>()
+        .connect<&PlayerSystem::onPlayerDestroy>(this);
     auto player = registry->create();
     registry->emplace<PlayerControlComp>(player, 1);
     registry->emplace<VelocityComp>(player);
@@ -157,6 +172,18 @@ void PlayerSystem::update()
                 velComp.vel.y = std::min(0.0f, velComp.vel.y+PLAYER_MOVE_FORCE);
         }
     }
+}
+
+void PlayerSystem::destroy()
+{
+    registry->on_destroy<PlayerComp>()
+        .disconnect<&PlayerSystem::onPlayerDestroy>(this);
+}
+
+void PlayerSystem::onPlayerDestroy(entt::registry &registry, const entt::entity entity)
+{
+    auto& comp = registry.get<PlayerComp>(entity);
+    al_destroy_bitmap(comp.bitmap);
 }
 
 void PhysicsSystem::markCollision(entt::entity entity)
@@ -382,7 +409,7 @@ void WeaponSystem::update()
     {
         auto& weaponComp = view.get<WeaponSpecComp>(entity);
         auto playerCtlComp = registry->try_get<PlayerControlComp>(entity);
-        auto enemyCtlComp = nullptr; // registry->try_get<EnemyControlComp>(entity);
+        auto enemyComp = registry->try_get<EnemyComp>(entity);
         bool firing = false;
         Faction faction = Faction::PLAYER;
         Faction targetSide = Faction::ENEMY;
@@ -391,7 +418,7 @@ void WeaponSystem::update()
             if (playerCtlComp->stateFlags&PLAYER_STATE_FIRING)
                 firing = true;
         }
-        else if (enemyCtlComp)
+        else if (enemyComp)
         {
             faction = Faction::ENEMY;
             targetSide = Faction::PLAYER;
@@ -529,12 +556,31 @@ void Renderer::draw(float interpolation, double delta)
     al_draw_bitmap(background, 0, 0, 0);
     // draw enemies
     {
-        auto view = registry->view<const EnemyComp, const PhysicalComp>();
+        auto view = registry->view<
+            const EnemyComp,
+            const PhysicalComp,
+            const PhysicalBoundTextureComp
+        >();
         for (auto entity : view)
         {
-            const auto& enemyComp = view.get<const EnemyComp>(entity);
-            const auto& physComp = view.get<const PhysicalComp>(entity);
-            enemyComp.enemy->draw(interpolation, delta, physComp.rect);
+            const auto& physComp = view
+                .get<PhysicalComp>(entity);
+            const auto& textureComp = view
+                .get<PhysicalBoundTextureComp>(entity);
+            al_draw_scaled_bitmap(
+                textureComp.texture,
+                0,
+                0,
+                al_get_bitmap_width(textureComp.texture),
+                al_get_bitmap_height(textureComp.texture),
+                physComp.rect.x+textureComp.offset.x,
+                physComp.rect.y+textureComp.offset.y,
+                textureComp.size.w,
+                textureComp.size.h,
+                0
+            );
+            // al_draw_scaled_bitmap(ALLEGRO_BITMAP *bitmap, float sx, float sy, float sw, float sh, float dx, float dy, float dw, float dh, int flags)
+            // enemyComp.enemy->draw(interpolation, delta, physComp.rect);
         }
     }
     // draw players
@@ -578,10 +624,10 @@ void Renderer::draw(float interpolation, double delta)
         for (auto entity : view)
         {
             const auto& physComp = view.get<PhysicalComp>(entity);
-            const auto velComp = registry->try_get<const VelocityComp>(entity);
+            auto velComp = registry->try_get<const VelocityComp>(entity);
             FRect rect = physComp.rect;
-            // if (velComp)
-            //     lerpRect(rect, velComp->vel, interpolation);
+            if (velComp)
+                lerpRect(rect, velComp->vel, interpolation);
             al_draw_filled_rectangle(rect.x, rect.y,
                 rect.x+rect.w, rect.y+rect.h, al_map_rgb(255, 20, 80));
         }
@@ -666,5 +712,6 @@ void World::draw(float interpolation, double delta)
 
 void World::destroy()
 {
+    playerSystem.destroy();
     weaponSystem.destroy();
 }

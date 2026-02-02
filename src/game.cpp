@@ -1,8 +1,4 @@
-#include <string>
 #include <inttypes.h>
-#include <future>
-#include <mutex>
-#include <unordered_map>
 #include "util/common.h"
 #include "util/framecount.h"
 #include "util/duration.h"
@@ -73,42 +69,6 @@ void HandlerDirector::destroy()
         handler->destroy();
 }
 
-bool TestHandler::init(void)
-{
-    ThreadPool* tpool = new ThreadPool(4);
-    ALLEGRO_DISPLAY* disp = ctx->display.get();
-    tpool->enqueue([disp]
-    {
-        PRINT_DEBUG("DISPLAY %p", disp);
-    });
-    futures.push_back(std::async(std::launch::async, [tpool]
-    {
-        al_rest(3);
-        delete tpool;
-    }));
-    return true;
-}
-
-void TestHandler::onInput(InputEvent* ev)
-{
-
-}
-
-void TestHandler::tick(void)
-{
-
-}
-
-void TestHandler::draw(float interpolation, double delta)
-{
-
-}
-
-void TestHandler::destroy()
-{
-
-}
-
 bool SplashHandler::init(void)
 {
     // BITMAPS
@@ -136,8 +96,10 @@ void SplashHandler::tick(void)
         assetLoader->numLoaded(),
         assetLoader->numFailed());
     if (assetLoader->numRequested()==assetLoader->numLoaded())
-        ctx->handlerDirector->set(std::make_unique<GameHandler>(ctx, move(assets)));
-        // ctx->handlerDirector->set(std::make_unique<TestHandler>(ctx, move(assets)));
+    {
+        ctx->handlerDirector->set(std::make_unique<GameHandler>(
+            ctx, std::move(assets)));
+    }
 }
 
 #define LOADING_TEXT "Loading..."

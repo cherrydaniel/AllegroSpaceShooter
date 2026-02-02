@@ -1,18 +1,21 @@
 #ifndef _GAME_COMPS_H_
 #define _GAME_COMPS_H_
 
+#include <allegro5/allegro.h>
+#include <cstdint>
 #include <entt/entity/registry.hpp>
 #include "util/common.h"
 #include "util/maths.h"
 #include "consts.h"
 
-// --- MARKER COMPS
+// entt doesn't play nice with empty structs as components
+#define MARKER_COMP(name) struct name { char __marker_placeholder__; };
 
-struct ScreenBoundComp {};
+MARKER_COMP(ScreenBoundComp);
 
-struct DestroyOnScreenBottomComp {};
+MARKER_COMP(DestroyOnScreenBottomComp);
 
-// --- DATA COMPS
+MARKER_COMP(EnemyComp);
 
 struct PositionComp
 {
@@ -73,11 +76,6 @@ struct PlayerControlComp
 
 struct PlayerComp
 {
-    static void on_destroy(entt::registry& registry, const entt::entity entity)
-    {
-        auto& comp = registry.get<PlayerComp>(entity);
-        al_destroy_bitmap(comp.bitmap);
-    }
     double animationTime;
     ALLEGRO_BITMAP* bitmap;
 };
@@ -85,11 +83,13 @@ struct PlayerComp
 struct HittableComp
 {
     Faction side;
+    HittableComp(Faction side) : side{side} {}
 };
 
 struct HealthComp
 {
     uint32_t hp;
+    HealthComp(uint32_t hp) : hp{hp} {}
 };
 
 struct ScoreComp
@@ -101,6 +101,7 @@ struct ScoreComp
 struct ScoreProviderComp
 {
     uint32_t score;
+    ScoreProviderComp(uint32_t score=0) : score{score} {}
 };
 
 struct CollisionMarkerComp
@@ -113,6 +114,21 @@ struct BulletComp
     entt::entity shooter;
     Faction targetSide;
     uint32_t damage;
+};
+
+struct PhysicalBoundTextureComp
+{
+    ALLEGRO_BITMAP* texture;
+    FVec2 size;
+    FVec2 offset;
+    PhysicalBoundTextureComp(ALLEGRO_BITMAP* texture, FVec2 size, FVec2 offset)
+        : texture{texture}, size{size}, offset{offset} {}
+    PhysicalBoundTextureComp(ALLEGRO_BITMAP* texture, FVec2 size)
+        : texture{texture}, size{size}, offset{0.0, 0.0} {}
+    PhysicalBoundTextureComp(ALLEGRO_BITMAP* texture)
+        : texture{texture}, size{0.0, 0.0}, offset{0.0, 0.0} {}
+    PhysicalBoundTextureComp()
+        : texture{nullptr}, size{0.0, 0.0}, offset{0.0, 0.0} {}
 };
 
 #endif

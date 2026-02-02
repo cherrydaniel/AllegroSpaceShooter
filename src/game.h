@@ -3,7 +3,6 @@
 
 #include <cstdarg>
 #include <cstring>
-#include <string>
 #include <memory>
 #include <vector>
 #include <allegro5/allegro.h>
@@ -17,7 +16,6 @@
 #include "input.h"
 #include "world.h"
 #include "assetloader.h"
-#include "threadpool.h"
 #include "eventloop.h"
 #include "consts.h"
 
@@ -93,26 +91,6 @@ public:
     void tick(void);
     void draw(float interpolation, double delta);
     void destroy();
-};
-
-class TestHandler : public Handler
-{
-private:
-    struct Context* ctx;
-    std::unique_ptr<AssetMap> assets;
-    World world;
-    std::vector<std::future<void>> futures;
-public:
-    TestHandler(struct Context* ctx, std::unique_ptr<AssetMap>&& assets) :
-        ctx{ctx},
-        assets{std::move(assets)}
-    {}
-    ~TestHandler(){}
-    bool init(void) override;
-    void onInput(InputEvent* ev) override;
-    void tick(void) override;
-    void draw(float interpolation, double delta) override;
-    void destroy() override;
 };
 
 class SplashHandler : public Handler
