@@ -14,6 +14,7 @@
 #include "input.h"
 #include "comps.h"
 #include "assetloader.h"
+#include "util/allegro_util.h"
 #include "weapons.h"
 #include "enemy.h"
 #include "consts.h"
@@ -41,8 +42,8 @@ void LevelSystem::init(EnemySystem* enemySystem,
 void LevelSystem::reset()
 {
     distance = 0.0f;
-    spawnGap = 500.0f;
-    nextSpawn = 500.0f;
+    spawnGap = 50.0f;
+    nextSpawn = 50.0f;
 }
 
 void LevelSystem::update()
@@ -396,6 +397,42 @@ void HitObserver::onEvent(struct BulletHitEvent event, void* data)
     registry->destroy(event.bullet);
 }
 
+void BackgroundSystem::init(
+    const IVec2& dim,
+    AssetMap* assets,
+    LevelSystem* levelSystem,
+    ALLEGRO_BITMAP* mainBitmap
+)
+{
+    this->levelSystem = levelSystem;
+    ALLEGRO_BITMAP* bgSource = assets->getBitmap("bg_tile");
+    bmp = BitmapPointer(al_create_bitmap(dim.w, dim.w));
+    al_set_target_bitmap(bmp.get());
+    al_draw_scaled_bitmap(bgSource,
+        0, 0, al_get_bitmap_width(bgSource), al_get_bitmap_height(bgSource),
+        0, 0, dim.w, dim.w, 0);
+    al_set_target_bitmap(mainBitmap);
+}
+
+void BackgroundSystem::draw(float interpolation, double delta)
+{
+    float distance = (float)levelSystem->getDistance();
+    ALLEGRO_BITMAP* bgBitmap = bmp.get();
+    float sz = (float)al_get_bitmap_height(bgBitmap);
+    float base = std::fmod(distance, sz);
+    FOR_TIMES(2, i)
+    {
+        float y = base+(sz*i)-sz;
+        PRINT_DEBUG("i=%zu, Y=%f, sz=%f", i, y, sz);
+        al_draw_bitmap(
+            bgBitmap,
+            0,
+            y,
+            0
+        );
+    }
+}
+
 void WeaponSystem::init(entt::registry* registry, const IVec2& dim,
     Subject<struct BulletHitEvent>* bulletHitSubject, AssetMap* assets)
 {
@@ -569,8 +606,6 @@ void Renderer::draw(float interpolation, double delta)
                 hitShaderComp.timeout = 0.0f;
         }
     }
-    al_clear_to_color(al_map_rgb(25, 10, 40));
-    al_draw_bitmap(background, 0, 0, 0);
     // draw enemies
     {
         auto view = registry->view<
@@ -724,6 +759,7 @@ bool World::init(int w, int h, AssetMap* assets, ALLEGRO_BITMAP* mainBitmap)
     dim.h = h;
     enemySystem.init(&registry, assets);
     levelSystem.init(&enemySystem, &registry, assets, dim);
+    backgroundSystem.init(dim, assets, &levelSystem, mainBitmap);
     weaponSystem.init(&registry, dim, &bulletHitSubject, assets);
     playerSystem.init(&registry, &weaponSystem);
     physicsSystem.init(&registry, dim, &bulletHitSubject);
@@ -752,6 +788,8 @@ void World::tick()
 
 void World::draw(float interpolation, double delta)
 {
+    al_clear_to_color(al_map_rgb(25, 10, 40));
+    backgroundSystem.draw(interpolation, delta);
     renderer.draw(interpolation, delta);
     debug("Distance: %.0f", levelSystem.getDistance());
 }

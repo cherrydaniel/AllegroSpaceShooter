@@ -20,8 +20,8 @@ This is a simple game made for learning purposes (WIP).
 ### TODO:
 * Texture atlas
 * Enemy death explosion
-* Moving background
 * Enemy-Player collision
+* Extract distance from level system to world
 * Change weapon fire rate from "steps" to "cooldown"
 * Fix tick steps so bullets don't miss
 * RM uninit - OS will clear resources and window won't stall

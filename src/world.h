@@ -3,7 +3,9 @@
 
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/bitmap.h>
 #include <entt/entity/registry.hpp>
+#include "util/allegro_util.h"
 #include "util/maths.h"
 #include "util/rnd.h"
 #include "util/observer.h"
@@ -94,6 +96,22 @@ public:
     void onEvent(struct BulletHitEvent event, void* data) override;
 };
 
+class BackgroundSystem
+{
+private:
+    IVec2 dim;
+    LevelSystem* levelSystem;
+    BitmapPointer bmp;
+public:
+    void init(
+        const IVec2& dim,
+        AssetMap* assets,
+        LevelSystem* levelSystem,
+        ALLEGRO_BITMAP* mainBitmap
+    );
+    void draw(float interpolation, double delta);
+};
+
 class WeaponSystem
 {
 private:
@@ -141,6 +159,7 @@ private:
     RND rnd;
     entt::registry registry;
     IVec2 dim;
+    BackgroundSystem backgroundSystem;
     EnemySystem enemySystem;
     LevelSystem levelSystem;
     PlayerSystem playerSystem;

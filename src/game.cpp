@@ -82,6 +82,7 @@ bool SplashHandler::init(void)
     assetLoader->loadBitmap("turret_01",    "./assets/images/turret_01.png");
     assetLoader->loadBitmap("turret_02",    "./assets/images/turret_02.png");
     assetLoader->loadBitmap("enemy_squid",  "./assets/images/enemy_squid.png");
+    assetLoader->loadBitmap("bg_tile",      "./assets/images/bg3.png");
     // SHADERS
     assetLoader->loadShader("red_shader",   "./assets/shaders/red.glsl");
     // MISC
